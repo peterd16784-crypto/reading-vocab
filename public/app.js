@@ -549,16 +549,18 @@ function renderReviewQuizCard(entry, dueDay) {
         <h3>${escapeHtml(entry.lemma)}</h3>
         <p>${escapeHtml(entry.partOfSpeech)} · ${escapeHtml(latestOccurrence?.source || "暂无出处")}</p>
       </div>
-      <span class="badge">四选一</span>
+      <span class="badge">四选一测验 v11</span>
     </div>
+    <div class="quizPrompt">选择正确中文释义</div>
     <div class="quizContext">
       <span>原文语境</span>
       <blockquote>${escapeHtml(latestOccurrence?.context || "暂无原文语境")}</blockquote>
     </div>
     <div class="choiceGrid">
       ${choices.map((choice) => `
-        <button class="choiceButton" type="button" data-choice="${escapeHtml(choice)}">
-          ${escapeHtml(choice)}
+        <button class="choiceButton" type="button" data-choice-id="${choice.id}">
+          <span>${choice.label}</span>
+          ${escapeHtml(choice.text)}
         </button>
       `).join("")}
     </div>
@@ -566,17 +568,17 @@ function renderReviewQuizCard(entry, dueDay) {
   `;
 
   card.querySelectorAll(".choiceButton").forEach((button) => {
-    const selected = button.dataset.choice;
-    const isCorrectChoice = selected === entry.chineseMeaning;
+    const choice = choices.find((item) => item.id === button.dataset.choiceId);
     if (answer) {
       button.disabled = true;
-      button.classList.toggle("correctChoice", isCorrectChoice);
-      button.classList.toggle("wrongChoice", selected === answer.selected && !answer.correct);
+      button.classList.toggle("correctChoice", choice?.isCorrect);
+      button.classList.toggle("wrongChoice", choice?.id === answer.selectedId && !answer.correct);
     } else {
       button.addEventListener("click", () => {
         state.reviewAnswers[key] = {
-          selected,
-          correct: isCorrectChoice
+          selectedId: choice.id,
+          selected: choice.text,
+          correct: choice.isCorrect
         };
         renderReview();
       });
@@ -640,8 +642,15 @@ function getReviewChoices(entry, key) {
   const fallback = ["严肃的，严重的", "努力，尽力", "面容，表情", "奇特的，特别的", "逃避，避开", "宁静的，平静的"];
   const pool = uniqueValues([...distractors, ...fallback])
     .filter((meaning) => meaning !== entry.chineseMeaning)
-    .slice(0, 3);
-  const choices = shuffleChoices([entry.chineseMeaning, ...pool]).slice(0, 4);
+    .slice(0, 3)
+    .map((meaning) => ({ text: meaning, isCorrect: false }));
+  const choices = shuffleChoices([{ text: entry.chineseMeaning, isCorrect: true }, ...pool])
+    .slice(0, 4)
+    .map((choice, index) => ({
+      ...choice,
+      id: `choice-${index}`,
+      label: ["A", "B", "C", "D"][index]
+    }));
   state.reviewChoices[key] = choices;
   return choices;
 }
@@ -654,11 +663,11 @@ function uniqueValues(values) {
   return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 }
 
-function shuffleChoices(values) {
-  return values
-    .map((value) => ({ value, sort: Math.random() }))
+function shuffleChoices(choices) {
+  return choices
+    .map((choice) => ({ choice, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
-    .map((item) => item.value);
+    .map((item) => item.choice);
 }
 
 function renderWordCard(entry) {

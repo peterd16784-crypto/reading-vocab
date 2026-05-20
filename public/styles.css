@@ -525,6 +525,14 @@ textarea:focus {
   color: var(--muted);
 }
 
+.quizPrompt {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(183, 129, 45, 0.14);
+  color: #6f4d1b;
+  font-weight: 900;
+}
+
 .quizContext {
   display: grid;
   gap: 8px;
@@ -555,6 +563,9 @@ textarea:focus {
 }
 
 .choiceButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   min-height: 52px;
   padding: 12px;
   border: 1px solid var(--line);
@@ -563,6 +574,18 @@ textarea:focus {
   color: var(--ink);
   cursor: pointer;
   text-align: left;
+}
+
+.choiceButton span {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #eef1ed;
+  color: var(--accent-dark);
+  font-weight: 900;
 }
 
 .choiceButton:hover:not(:disabled) {
