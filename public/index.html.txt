@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>原版阅读词汇本</title>
+    <link rel="stylesheet" href="/styles.css?v=10" />
+  </head>
+  <body>
+    <section class="authScreen" id="authScreen">
+      <div class="authCard">
+        <p class="eyebrow">Original Reading</p>
+        <h1>登录词汇本</h1>
+        <p>创建账户后，你的生词、出处和复习记录会保存到这个本地服务里。</p>
+        <form class="authForm" id="authForm">
+          <label>
+            <span>邮箱</span>
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input name="password" type="password" autocomplete="current-password" required minlength="6" />
+          </label>
+          <div class="authActions">
+            <button class="primaryButton" type="submit" data-auth-action="login">登录</button>
+            <button class="ghostButton" type="submit" data-auth-action="register">注册</button>
+          </div>
+        </form>
+        <div class="resultBox" id="authMessage" hidden></div>
+      </div>
+    </section>
+
+    <main class="app" id="appShell" hidden>
+      <aside class="sidebar">
+        <div>
+          <p class="eyebrow">Original Reading</p>
+          <h1>原版阅读词汇本</h1>
+          <div class="accountBox">
+            <span id="userEmail"></span>
+            <button class="ghostButton" id="logoutButton" type="button">退出</button>
+          </div>
+        </div>
+        <nav class="tabs" aria-label="主导航">
+          <button class="tab active" data-view="capture">录入</button>
+          <button class="tab" data-view="review">今日复习 <span id="reviewCount">0</span></button>
+          <button class="tab" data-view="notebook">生词本 <span id="wordCount">0</span></button>
+        </nav>
+        <div class="stat">
+          <span>生词条目</span>
+          <strong id="totalEntries">0</strong>
+          <span>个独立词义</span>
+        </div>
+      </aside>
+
+      <section class="panel view active" id="capture">
+        <header class="panelHeader">
+          <div>
+            <h2>记录一个生词</h2>
+            <p>可以让 AI 分析，也可以先自己查询释义和例句后手动录入。</p>
+          </div>
+          <button class="ghostButton" id="clearData" type="button">清空演示数据</button>
+        </header>
+
+        <form class="entryForm" id="entryForm">
+          <div class="modeSwitch" aria-label="录入方式">
+            <label class="modeOption active">
+              <input type="radio" name="entryMode" value="manual" checked />
+              <span>手动录入</span>
+            </label>
+            <label class="modeOption">
+              <input type="radio" name="entryMode" value="ai" />
+              <span>AI 自动分析</span>
+            </label>
+          </div>
+
+          <label>
+            <span>单词原型</span>
+            <input id="word" name="word" autocomplete="off" placeholder="例如 render" required />
+          </label>
+          <label>
+            <span>语境原句</span>
+            <textarea id="context" name="context" rows="4" placeholder="粘贴生词所在的英文句子" required></textarea>
+          </label>
+          <div class="gridTwo">
+            <label>
+              <span>书名</span>
+              <input id="book" name="book" placeholder="例如 Jane Eyre" required />
+            </label>
+            <label>
+              <span>页码 / 位置</span>
+              <input id="page" name="page" placeholder="例如 p.42 或 Kindle Loc. 891" required />
+            </label>
+          </div>
+
+          <div class="manualFields" id="manualFields">
+            <div class="gridTwo">
+              <label>
+                <span>词性</span>
+                <input id="partOfSpeech" name="partOfSpeech" placeholder="例如 verb / noun / adjective" />
+              </label>
+              <label>
+                <span>中文释义</span>
+                <input id="chineseMeaning" name="chineseMeaning" placeholder="例如 使处于某种状态" />
+              </label>
+            </div>
+            <label>
+              <span>英文释义</span>
+              <textarea id="englishMeaning" name="englishMeaning" rows="3" placeholder="例如 to cause someone or something to be in a particular state"></textarea>
+            </label>
+            <label>
+              <span>词典例句</span>
+              <textarea id="examples" name="examples" rows="5" placeholder="每行一个例句；可以写英文，也可以写 英文 / 中文"></textarea>
+            </label>
+          </div>
+
+          <p class="modeHint" id="modeHint">手动模式会直接保存你填写的释义和例句，适合暂时没有 API Key 时使用。</p>
+          <button class="primaryButton" type="submit" id="analyzeButton">分析并加入生词本</button>
+        </form>
+
+        <div class="resultBox" id="resultBox" hidden></div>
+      </section>
+
+      <section class="panel view" id="review">
+        <header class="panelHeader">
+          <div>
+            <h2>今日复习</h2>
+            <p>新词会在第 2、4、7、15、30 天进入复习队列。</p>
+          </div>
+        </header>
+        <div class="reviewList" id="reviewList"></div>
+      </section>
+
+      <section class="panel view" id="notebook">
+        <header class="panelHeader">
+          <div>
+            <h2>生词本</h2>
+            <p>同一单词、词性和含义会自动合并出处。</p>
+          </div>
+          <input class="search" id="search" placeholder="搜索单词、释义或书名" />
+        </header>
+        <div class="noticeBox" id="notebookNotice" hidden></div>
+        <div class="wordList" id="wordList"></div>
+      </section>
+    </main>
+
+    <template id="wordTemplate">
+      <article class="wordCard">
+        <div class="wordTop">
+          <div>
+            <h3></h3>
+            <p class="meaning"></p>
+          </div>
+          <span class="badge"></span>
+        </div>
+        <p class="englishMeaning"></p>
+        <ul class="examples"></ul>
+        <div class="sources"></div>
+      </article>
+    </template>
+
+    <dialog class="editDialog" id="editDialog">
+      <form class="editForm" id="editForm">
+        <header class="dialogHeader">
+          <div>
+            <h2>编辑词条</h2>
+            <p>修改释义、词性和例句，阅读出处会保留。</p>
+          </div>
+          <button class="iconButton" type="button" id="closeEdit" aria-label="关闭">×</button>
+        </header>
+        <input type="hidden" id="editEntryId" name="entryId" />
+        <label>
+          <span>单词原型</span>
+          <input id="editLemma" name="lemma" required />
+        </label>
+        <div class="gridTwo">
+          <label>
+            <span>词性</span>
+            <input id="editPartOfSpeech" name="partOfSpeech" required />
+          </label>
+          <label>
+            <span>中文释义</span>
+            <input id="editChineseMeaning" name="chineseMeaning" required />
+          </label>
+        </div>
+        <label>
+          <span>英文释义</span>
+          <textarea id="editEnglishMeaning" name="englishMeaning" rows="3" required></textarea>
+        </label>
+        <label>
+          <span>词典例句</span>
+          <textarea id="editExamples" name="examples" rows="5" required></textarea>
+        </label>
+        <div class="dialogActions">
+          <button class="ghostButton" type="button" id="cancelEdit">取消</button>
+          <button class="primaryButton" type="submit">保存修改</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="editDialog" id="mergeDialog">
+      <form class="editForm" method="dialog">
+        <header class="dialogHeader">
+          <div>
+            <h2>可能是同一个词条</h2>
+            <p>系统发现多个可能相关的已有词条，你可以查看后选择合并到哪一个。</p>
+          </div>
+          <button class="iconButton" type="button" id="closeMerge" aria-label="关闭">×</button>
+        </header>
+        <div class="mergeCompare" id="mergeCompare"></div>
+        <div class="dialogActions">
+          <button class="ghostButton" type="button" id="createSeparate">仍然新建</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/app.js?v=10" type="module"></script>
+  </body>
+</html>
